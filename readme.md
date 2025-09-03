@@ -14,3 +14,7 @@ pnpm run dev
 # Build for production in the dist/ directory
 pnpm run build
 ```
+
+
+TODO:
+add gravity around mouse scroll

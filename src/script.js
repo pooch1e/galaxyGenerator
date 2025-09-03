@@ -22,6 +22,8 @@ const parameters = {
   spin: 1,
   randomness: 0.2,
   randomnessPower: 3,
+  gravity: 1,
+  gravityPower: 1,
 };
 
 /**
@@ -110,6 +112,16 @@ const createGalaxy = () => {
   scene.add(points);
 };
 createGalaxy();
+
+const handleMouseScroll = () => {
+  window.addEventListener('mousemove', (e) => {
+    const mouseX = (e.clientX / sizes.width - 0.5).toFixed(2);
+    const mouseY = (e.clientY / sizes.height - 0.5).toFixed(2);
+    console.log(mouseX, mouseY);
+  });
+};
+
+handleMouseScroll();
 
 gui
   .add(parameters, 'count')
