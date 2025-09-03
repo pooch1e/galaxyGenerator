@@ -18,6 +18,8 @@ const parameters = {
   count: 1000,
   size: 0.02,
   radius: 5,
+  branches: 2,
+  spin: 1,
 };
 
 /**
@@ -60,6 +62,20 @@ const createGalaxy = () => {
     positions[i3 + 1] = 0;
     positions[i3 + 2] = 0;
   }
+
+  //branches
+  for (let i = 0; i < parameters.count; i++) {
+    const i3 = i * 3;
+
+    const radius = Math.random() * parameters.radius;
+    const spinAngle = radius * parameters.spin;
+    const branchAngle =
+      ((i % parameters.branches) / parameters.branches) * Math.PI * 2;
+
+    positions[i3] = Math.cos(branchAngle + spinAngle) * radius;
+    positions[i3 + 1] = 0;
+    positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius;
+  }
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
   // Material
@@ -94,6 +110,18 @@ gui
   .min(0.01)
   .max(20)
   .step(0.01)
+  .onFinishChange(createGalaxy);
+gui
+  .add(parameters, 'branches')
+  .min(2)
+  .max(20)
+  .step(1)
+  .onFinishChange(createGalaxy);
+gui
+  .add(parameters, 'spin')
+  .min(-5)
+  .max(5)
+  .step(0.001)
   .onFinishChange(createGalaxy);
 
 /**
