@@ -11,6 +11,11 @@ const gui = new GUI();
 // Canvas
 const canvas = document.querySelector('canvas.webgl');
 
+//raycaster helper
+const raycaster = new THREE.Raycaster();
+const mouseVector = new THREE.Vector2();
+const mouseWorldPosition = new THREE.Vector3();
+
 // Scene
 const scene = new THREE.Scene();
 
@@ -36,6 +41,23 @@ const parameters = {
 let geometry = null;
 let material = null;
 let points = null;
+
+// const mouse = {
+//   x: 0,
+//   y: 0,
+// };
+
+window.addEventListener('mousemove', (e) => {
+  mouseVector.x = (e.clientX / sizes.width) * 2 - 1;
+  mouseVector.y = -(e.clientY / sizes.height) * 2 + 1;
+
+  // project into world space at Z=0 plane
+  raycaster.setFromCamera(mouseVector, camera);
+  const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  raycaster.ray.intersectPlane(planeZ, mouseWorldPosition);
+});
+
+console.log(mouseVector.x, mouseVector.y);
 
 const createGalaxy = () => {
   // Destroy old galaxy
@@ -123,16 +145,6 @@ const createGalaxy = () => {
 };
 createGalaxy();
 
-const handleMouseScroll = () => {
-  window.addEventListener('mousemove', (e) => {
-    const mouseX = (e.clientX / sizes.width - 0.5).toFixed(2);
-    const mouseY = (e.clientY / sizes.height - 0.5).toFixed(2);
-    console.log(mouseX, mouseY);
-  });
-};
-
-handleMouseScroll();
-
 gui
   .add(parameters, 'count')
   .min(100)
@@ -181,6 +193,12 @@ gui
 
 gui.addColor(parameters, 'insideColor').onFinishChange(createGalaxy);
 gui.addColor(parameters, 'outsideColor').onFinishChange(createGalaxy);
+gui
+  .add(parameters, 'gravity')
+  .min(0.1)
+  .max(5)
+  .step(0.01)
+  .onFinishChange(createGalaxy);
 
 /**
  * Sizes
@@ -237,8 +255,47 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
  */
 const clock = new THREE.Clock();
 
+const velocities = new Float32Array(parameters.count * 3);
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
+
+  if (geometry) {
+    const positions = geometry.attributes.position.array;
+
+    for (let i = 0; i < parameters.count; i++) {
+      const i3 = i * 3;
+
+      // current particle position
+      const px = positions[i3];
+      const py = positions[i3 + 1];
+      const pz = positions[i3 + 2];
+
+      // direction vector from particle → mouse
+      const dx = mouseWorldPosition.x - px;
+      const dy = mouseWorldPosition.y - py;
+      const dz = mouseWorldPosition.z - pz;
+      const distSq = dx * dx + dy * dy + dz * dz;
+
+      // simple gravity strength
+      const force = parameters.gravity / (distSq + 0.1);
+
+      // apply "acceleration"
+      velocities[i3] += dx * force * 0.01;
+      velocities[i3 + 1] += dy * force * 0.01;
+      velocities[i3 + 2] += dz * force * 0.01;
+
+      velocities[i3] *= 0.95;
+      velocities[i3 + 1] *= 0.95;
+      velocities[i3 + 2] *= 0.95;
+
+      // update particle position
+      positions[i3] += velocities[i3];
+      positions[i3 + 1] += velocities[i3 + 1];
+      positions[i3 + 2] += velocities[i3 + 2];
+    }
+  }
+
+  geometry.attributes.position.needsUpdate = true;
 
   // Update controls
   controls.update();
