@@ -24,6 +24,8 @@ const parameters = {
   randomnessPower: 3,
   gravity: 1,
   gravityPower: 1,
+  insideColor: '#f6030',
+  outsideColor: '#1b3984'
 };
 
 /**
@@ -47,14 +49,7 @@ const createGalaxy = () => {
 
   geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(parameters.count * 3);
-  // cube bounding
-  //   for (let i = 0; i < parameters.count; i++) {
-  //     const i3 = i * 3;
 
-  //     positions[i3] = (Math.random() - 0.5) * 3;
-  //     positions[i3 + 1] = (Math.random() - 0.5) * 3;
-  //     positions[i3 + 2] = (Math.random() - 0.5) * 3;
-  //   }
 
   //radial
   for (let i = 0; i < parameters.count; i++) {
@@ -105,6 +100,7 @@ const createGalaxy = () => {
     sizeAttenuation: true,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
+    color: true
   });
 
   //points
@@ -168,6 +164,9 @@ gui
   .max(10)
   .step(0.001)
   .onFinishChange(createGalaxy);
+
+  gui.addColor(parameters, 'insideColor').onFinishChange(createGalaxy)
+gui.addColor(parameters, 'outsideColor').onFinishChange(createGalaxy)
 
 /**
  * Sizes
